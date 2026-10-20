@@ -1,0 +1,179 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Application public data collection path
+    match /artifacts/{appId}/public/data {
+
+      function getUserDoc(uid) {
+        return get(/databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(uid)).data;
+      }
+
+      function hasUserDoc(uid) {
+        return exists(/databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(uid));
+      }
+
+      function isRootAdmin() {
+        return isSignedIn() && (
+          ('email' in request.auth.token) &&
+          request.auth.token.email.lower() == 'abkxai@gmail.com'
+        );
+      }
+
+      function isApproved() {
+        return isSignedIn() && (
+          isRootAdmin() || (
+            hasUserDoc(request.auth.uid) &&
+            getUserDoc(request.auth.uid).approvalStatus == 'APPROVED'
+          )
+        );
+      }
+
+      function isAdmin() {
+        return isSignedIn() && (
+          isRootAdmin() || (
+            isApproved() &&
+            getUserDoc(request.auth.uid).role == 'ADMIN'
+          )
+        );
+      }
+
+      function isSalesperson() {
+        return isApproved() && (
+          getUserDoc(request.auth.uid).role == 'SALESPERSON'
+        );
+      }
+
+      function isStaff() {
+        return isApproved() && (
+          getUserDoc(request.auth.uid).role == 'STAFF'
+        );
+      }
+
+      function getSalespersonId() {
+        return ('salespersonId' in getUserDoc(request.auth.uid)) ? getUserDoc(request.auth.uid).salespersonId : '';
+      }
+
+      // 1. Users collection
+      match /users/{userId} {
+        // Any user can read their own profile; admins can list and read all profiles
+        allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        allow list: if isAdmin();
+
+        // On create: Admins can create; users can register their own profile with PENDING status (or root admin email)
+        allow create: if isSignedIn() && (
+          isAdmin() ||
+          (
+            request.auth.uid == userId && (
+              isRootAdmin() ||
+              request.resource.data.approvalStatus == 'PENDING'
+            )
+          )
+        );
+
+        // On update: Admins can update any field (roles, approvalStatus, salesperson).
+        // Non-admin users cannot alter approvalStatus, role, or isFirstUser.
+        allow update: if isSignedIn() && (
+          isAdmin() ||
+          (
+            request.auth.uid == userId &&
+            request.resource.data.approvalStatus == resource.data.approvalStatus &&
+            request.resource.data.role == resource.data.role &&
+            request.resource.data.isFirstUser == resource.data.isFirstUser
+          )
+        );
+
+        allow delete: if isAdmin() && request.auth.uid != userId;
+      }
+
+      // 2. Salespersons collection (master CRM)
+      match /salespersons/{personId} {
+        allow read: if isApproved();
+        allow create, update, delete: if isAdmin();
+      }
+
+      // 3. Companies collection (CRM customer accounts)
+      match /companies/{companyId} {
+        allow read: if isApproved();
+        allow create, update, delete: if isAdmin();
+      }
+
+      // 4. Projects collection (CRITICAL DATABASE SECURITY ENFORCEMENT)
+      // ADMIN & STAFF: Can read/list all operational projects.
+      // SALESPERSON: Can read or query ONLY projects where project.salespersonId == authenticatedUser.salespersonId.
+      // Salesperson CANNOT query another salesperson's records.
+      // Salesperson CANNOT change salespersonId on a project.
+      match /projects/{projectId} {
+        allow get: if isAdmin() || isStaff() || (
+          isSalesperson() && resource.data.salespersonId == getSalespersonId()
+        );
+        allow list: if isAdmin() || isStaff() || (
+          isSalesperson() && resource.data.salespersonId == getSalespersonId()
+        );
+        allow create: if isAdmin() || isSalesperson();
+        allow update: if isAdmin() || (
+          isSalesperson() &&
+          resource.data.salespersonId == getSalespersonId() &&
+          request.resource.data.salespersonId == getSalespersonId()
+        );
+        allow delete: if isAdmin();
+      }
+
+      // 5. Invoices collection
+      match /invoices/{invoiceId} {
+        allow read: if isApproved();
+        allow create, update, delete: if isAdmin();
+      }
+
+      // 6. Payments collection (payment receipts & transactions)
+      match /payments/{paymentId} {
+        allow read: if isApproved();
+        allow create, update, delete: if isAdmin();
+      }
+
+      // 7. Payment followups
+      match /payment_followups/{followupId} {
+        allow read, create: if isApproved();
+        allow update, delete: if isAdmin();
+      }
+
+      // 8. Project activity log (immutable audit history)
+      match /project_activity/{activityId} {
+        allow read, create: if isApproved();
+        allow update, delete: if false;
+      }
+
+      // 9. Remarks history (immutable remarks archive)
+      match /remarks_history/{historyId} {
+        allow read, create: if isApproved();
+        allow update, delete: if false;
+      }
+
+      // 10. Atomic sequence counters (collision-free project codes)
+      match /counters/{counterId} {
+        allow read, write: if isApproved();
+      }
+
+      // 11. Application configuration
+      match /config/{configId} {
+        allow read: if isSignedIn();
+        allow write: if isAdmin();
+      }
+    }
+
+    // Default deny-all catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

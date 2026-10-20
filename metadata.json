@@ -1,0 +1,8 @@
+{
+  "name": "Remix AB TRACKER — Scaffold Rental Tracker",
+  "description": "Professional scaffolding project and rental tracker with real-time overdue tracking, payment follow-up, and audit history.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

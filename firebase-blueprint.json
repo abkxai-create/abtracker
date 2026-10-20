@@ -1,0 +1,259 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role, salesperson link and approval status",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "username": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "authMethod": { "type": "string", "enum": ["GOOGLE", "EMAIL_PASSWORD", "EMAIL_OTP"] },
+        "role": { "type": "string", "enum": ["ADMIN", "SALESPERSON"] },
+        "salespersonId": { "type": "string" },
+        "salespersonName": { "type": "string" },
+        "approvalStatus": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "DISABLED"] },
+        "isFirstUser": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "role", "approvalStatus"]
+    },
+    "Salesperson": {
+      "title": "Salesperson",
+      "description": "Sales person master record for project and customer ownership",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "mobile": { "type": "string" },
+        "email": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },
+        "remarks": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "status"]
+    },
+    "CompanyRecord": {
+      "title": "CompanyRecord",
+      "description": "Company/Customer master record linked to default salesperson",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyName": { "type": "string" },
+        "normalizedName": { "type": "string" },
+        "normalizedMobile": { "type": "string" },
+        "defaultSalespersonId": { "type": "string" },
+        "defaultSalespersonName": { "type": "string" },
+        "contactPerson": { "type": "string" },
+        "mobile": { "type": "string" },
+        "email": { "type": "string" },
+        "remarks": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "companyName", "defaultSalespersonId", "defaultSalespersonName"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "Scaffolding rental or erection/dismantling project with commercial & salesperson data",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "projectCode": { "type": "string" },
+        "company": { "type": "string" },
+        "companyId": { "type": "string" },
+        "mobile": { "type": "string" },
+        "projectReference": { "type": "string" },
+        "scaffoldingType": { "type": "string", "enum": ["RENTAL", "EREC/DISM"] },
+        "hirePeriodDays": { "type": "number" },
+        "deliveryDate": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "isDueDateOverridden": { "type": "boolean" },
+        "projectStatus": { "type": "string", "enum": ["ACTIVE", "EXTENDED", "RETURNED", "CLOSED", "ON_HOLD", "CANCELLED"] },
+        "returnedDate": { "type": "string" },
+        "paymentStatus": { "type": "string", "enum": ["PAID", "PARTIAL_PAID", "NOT_PAID"] },
+        "remarks": { "type": "string" },
+        "salespersonId": { "type": "string" },
+        "salespersonName": { "type": "string" },
+        "salespersonAssignmentType": { "type": "string", "enum": ["AUTO_ASSIGNED", "MANUALLY_CHANGED"] },
+        "qtnNumber": { "type": "string" },
+        "qtnDate": { "type": "string" },
+        "qtnAmount": { "type": "number" },
+        "qtnStatus": { "type": "string" },
+        "lpoNumber": { "type": "string" },
+        "lpoDate": { "type": "string" },
+        "lpoAmount": { "type": "number" },
+        "contractAmount": { "type": "number" },
+        "paymentTerms": { "type": "string" },
+        "creditDays": { "type": "number" },
+        "lastFollowUpDate": { "type": "string" },
+        "nextFollowUpDate": { "type": "string" },
+        "followUpStatus": { "type": "string" },
+        "followUpRemarks": { "type": "string" },
+        "followUpCount": { "type": "number" },
+        "promisedPaymentDate": { "type": "string" },
+        "promisedAmount": { "type": "number" },
+        "promiseStatus": { "type": "string", "enum": ["PENDING", "HONORED", "MISSED"] },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedBy": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "deletedAt": { "type": "string" },
+        "deletedBy": { "type": "string" }
+      },
+      "required": ["company", "mobile", "projectReference", "scaffoldingType", "hirePeriodDays", "deliveryDate", "dueDate", "projectStatus", "paymentStatus"]
+    },
+    "ProjectInvoice": {
+      "title": "ProjectInvoice",
+      "description": "Invoice raised against a project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string" },
+        "projectCode": { "type": "string" },
+        "company": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "invoiceDate": { "type": "string" },
+        "invoiceAmount": { "type": "number" },
+        "paymentDueDate": { "type": "string" },
+        "remarks": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "projectId", "invoiceNumber", "invoiceDate", "invoiceAmount", "paymentDueDate"]
+    },
+    "PaymentReceipt": {
+      "title": "PaymentReceipt",
+      "description": "Payment receipt transaction recorded against an invoice or project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string" },
+        "projectCode": { "type": "string" },
+        "invoiceId": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "company": { "type": "string" },
+        "paymentReceivedDate": { "type": "string" },
+        "paymentReceivedAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["Bank Transfer", "Cheque", "Cash", "Other"] },
+        "paymentReference": { "type": "string" },
+        "remarks": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["id", "projectId", "paymentReceivedDate", "paymentReceivedAmount", "paymentMethod"]
+    },
+    "PaymentFollowup": {
+      "title": "PaymentFollowup",
+      "description": "Log of follow-ups conducted for project payment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string" },
+        "followUpNumber": { "type": "number" },
+        "followUpDate": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["projectId", "followUpNumber", "followUpDate", "notes", "createdBy"]
+    },
+    "ProjectActivity": {
+      "title": "ProjectActivity",
+      "description": "Audit trail log for all actions performed on projects",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["projectId", "userId", "userName", "action", "details"]
+    },
+    "RemarksHistory": {
+      "title": "RemarksHistory",
+      "description": "Historical log of remarks changes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string" },
+        "userId": { "type": "string" },
+        "previousRemark": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["projectId", "userId", "previousRemark"]
+    },
+    "Counter": {
+      "title": "Counter",
+      "description": "Atomic sequence generator for collision-safe business identifiers",
+      "type": "object",
+      "properties": {
+        "lastNumber": { "type": "number" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["lastNumber", "updatedAt"]
+    },
+    "AppConfig": {
+      "title": "AppConfig",
+      "description": "Application settings and root administrator configuration",
+      "type": "object",
+      "properties": {
+        "adminEmails": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/artifacts/{appId}/public/data/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and RBAC permissions"
+    },
+    "/artifacts/{appId}/public/data/salespersons/{personId}": {
+      "schema": "Salesperson",
+      "description": "Sales person master directory"
+    },
+    "/artifacts/{appId}/public/data/companies/{companyId}": {
+      "schema": "CompanyRecord",
+      "description": "Company master directory with salesperson assignment"
+    },
+    "/artifacts/{appId}/public/data/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Scaffolding projects, commercial details and rentals"
+    },
+    "/artifacts/{appId}/public/data/invoices/{invoiceId}": {
+      "schema": "ProjectInvoice",
+      "description": "Invoices raised against projects"
+    },
+    "/artifacts/{appId}/public/data/payments/{paymentId}": {
+      "schema": "PaymentReceipt",
+      "description": "Payments received and financial transactions"
+    },
+    "/artifacts/{appId}/public/data/payment_followups/{followupId}": {
+      "schema": "PaymentFollowup",
+      "description": "Payment follow-up history"
+    },
+    "/artifacts/{appId}/public/data/project_activity/{activityId}": {
+      "schema": "ProjectActivity",
+      "description": "System-wide project audit trail"
+    },
+    "/artifacts/{appId}/public/data/remarks_history/{historyId}": {
+      "schema": "RemarksHistory",
+      "description": "Remarks revision history"
+    },
+    "/artifacts/{appId}/public/data/counters/{counterId}": {
+      "schema": "Counter",
+      "description": "Atomic sequence counters"
+    },
+    "/artifacts/{appId}/public/data/config/{configId}": {
+      "schema": "AppConfig",
+      "description": "System configuration"
+    }
+  }
+}
